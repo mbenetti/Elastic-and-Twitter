@@ -1,0 +1,67 @@
+version: '3.2'
+
+services:
+  
+  sentiment:
+    build:
+      context: sentiment/
+    volumes:
+      - type: bind
+        source: ./sentiment/server.js
+        target: /opt/server.js
+    expose:
+      - "8888"
+    networks:
+      - elk
+      
+  elastic-stack:
+    build:
+      context: elastic-stack/
+    volumes:
+      - type: bind
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /etc/elasticsearch/elasticsearch.yml
+      - type: bind
+        source: ./logstash/config/logstash.yml
+        target: /opt/logstash/config/logstash.yml
+      - type: bind
+        source: ./logstash/pipeline/logstash.conf
+        target: /etc/logstash/conf.d/logstash.conf
+      - type: bind
+        source: ./logstash/templates
+        target: /opt/logstash/template
+      - type: bind
+        source: ./kibana/config/kibana-server.yml
+        target: /opt/kibana/config/kibana.yml
+      - type: bind
+        source: ./Data/elasticsearch-data/
+        target: /var/lib/elasticsearch
+    ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5044:5044"
+    environment:
+      ES_HEAP_SIZE: "1280m"
+      LS_HEAP_SIZE: "256m"
+      LS_OPTS: "--config.reload.automatic"
+    networks:
+      - elk
+    depends_on:
+      - sentiment
+  
+  nginx-loadbalancer:
+    image: nginx
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/nginx.conf
+    depends_on: 
+      - sentiment
+    ports:
+      - "4444:4444"
+    networks:
+      - elk
+
+networks:
+  elk:
+    driver: bridge

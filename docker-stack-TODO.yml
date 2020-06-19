@@ -1,0 +1,85 @@
+version: '3.3'
+
+services:
+
+  sentiment:
+    image: hyp3rsonix/sentiment
+    ports:
+      - "8888:8888"
+    configs:
+      - source: sentiment_config
+        target: /opt/server.js
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  elasticsearch:
+    image: hyp3rsonix/elasticsearch-oss-rpi4
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    configs:
+      - source: elastic_config
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+    environment:
+      ES_JAVA_OPTS: "-Xmx1g -Xms1g"
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  logstash:
+    image: hyp3rsonix/logstash-oss-rpi4
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    configs:
+      - source: logstash_config
+        target: /usr/share/logstash/config/logstash.yml
+      - source: logstash_pipeline
+        target: /usr/share/logstash/pipeline/logstash.conf
+      - source: logstash_elastic_template
+        target: /usr/share/logstash/templates/twitter-index.json
+        
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  kibana:
+    image: hyp3rsonix/kibana-oss-rpi4
+    ports:
+      - "5601:5601"
+    configs:
+      - source: kibana_config
+        target: /usr/share/kibana/config/kibana.yml
+    networks:
+      - elk
+    deploy:
+      mode: replicated
+      replicas: 1
+
+configs:
+
+  sentiment_config:
+    file: ./sentiment/server.js
+  elastic_config:
+    file: ./elasticsearch/config/elasticsearch.yml
+  logstash_config:
+    file: ./logstash/config/logstash.yml
+  logstash_pipeline:
+    file: ./logstash/pipeline/logstash.conf
+  kibana_config:
+    file: ./kibana/config/kibana.yml
+  logstash_elastic_template
+    file ./logstash/templates/twitter-index.json
+
+networks:
+  elk:
+    driver: overlay
