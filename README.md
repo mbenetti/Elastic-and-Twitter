@@ -1,7 +1,7 @@
 ## Sentiment Analysis using the Twitter API and the Elastic Stack
 
-https://pixabay.com/images/id-3563066/
-<img align="center" width="850" height="350" src="https://cdn.pixabay.com/photo/2018/07/26/08/31/woman-3563066_1280.jpg">
+
+<img align="center" width="640" height="426" src="https://cdn.pixabay.com/photo/2018/07/26/08/31/woman-3563066_1280.jpg">
 
 ### This project was developed between Datagroup and the University Ulm. This was a studen project and is not suitable for pruduction envirments. 
 # Guide:
